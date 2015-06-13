@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -93,6 +94,7 @@ namespace NixieAuto1
 
                 Debug.WriteLine("Video Path:"+VideoPath);
                 Debug.WriteLine("Subtitle Path:" + SubtitlePath);
+                startprocess(VideoPath,SubtitlePath,"");
 
             }
 
@@ -152,6 +154,8 @@ namespace NixieAuto1
         {
 
         }
+
+
         //查看文件是否可用(用于检测是否复制完成)
         protected virtual bool IsFileLocked(FileInfo file)
         {
@@ -177,6 +181,72 @@ namespace NixieAuto1
 
             //file is not locked
             return false;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Exe("D:","ipconfig","");
+ 
+        }
+
+
+        string cmd11;
+        string cmd22;
+        string cmd33;
+        public void Exe(string cmd1, string cmd2, string cmd3)
+        {
+            cmd11 = cmd1;
+            cmd22 = cmd2;
+            cmd33 = cmd3;
+            Process cmd = new Process();
+            cmd.StartInfo.FileName = "cmd.exe";
+            //cmd.StartInfo.Arguments = args;
+            //将cmd的标准输入和输出全部重定向到.NET的程序里 
+            cmd.StartInfo.RedirectStandardInput = true; 
+            cmd.StartInfo.RedirectStandardOutput = true;
+            cmd.StartInfo.UseShellExecute = false;
+            //
+            cmd.StartInfo.CreateNoWindow = true;
+            cmd.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            //
+            ThreadPool.QueueUserWorkItem(new WaitCallback(ExeThread), cmd);
+        }
+        private void ExeThread(object obj)
+        {
+            Process cmd = obj as Process;
+            cmd.Start();
+            cmd.StandardInput.WriteLine(cmd11);
+            cmd.StandardInput.WriteLine(cmd22);
+            cmd.StandardInput.WriteLine(cmd33);
+            cmd.OutputDataReceived += new DataReceivedEventHandler(cmd_OutputDataReceived);
+            cmd.BeginOutputReadLine();
+            //
+            Application.DoEvents();
+            cmd.WaitForExit();
+            if (cmd.ExitCode != 0)
+            {
+                ShowMessage(cmd.StandardOutput.ReadToEnd());
+            }
+            cmd.Close();
+        }
+        void cmd_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            ShowMessage(e.Data);
+        }
+        private delegate void ShowMessageHandler(string msg);
+        private void ShowMessage(string msg)
+        {
+            if (this.InvokeRequired)
+            {
+                this.BeginInvoke(new ShowMessageHandler(ShowMessage), new object[] { msg });
+            }
+            else
+            {
+                if (msg != null)
+                {
+                    textBox1.AppendText(msg + "\r\n");
+                }
+            }
         }
 
 
