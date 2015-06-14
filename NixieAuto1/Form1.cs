@@ -89,12 +89,12 @@ namespace NixieAuto1
                 string VideoPath;
                 string SubtitlePath;
 
-                    VideoPath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".flv";
+                    VideoPath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".mp4";
                     SubtitlePath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".ass";
 
                 Debug.WriteLine("Video Path:"+VideoPath);
                 Debug.WriteLine("Subtitle Path:" + SubtitlePath);
-                startprocess(VideoPath,SubtitlePath,"");
+                startprocess(VideoPath,SubtitlePath,@"E:\output");
 
             }
 
@@ -107,7 +107,7 @@ namespace NixieAuto1
             //Debug.WriteLine(filepath + "|" + filename);
             string fileextension = Path.GetExtension(filepath);
             //Debug.WriteLine(Path.GetDirectoryName(filepath) +@"\"+ Path.GetFileNameWithoutExtension(filepath) + ".ass");
-            if (fileextension == ".flv")
+            if (fileextension == ".mp4")
             {
                 if (checkiffileexist(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".ass"))
                 {
@@ -120,7 +120,7 @@ namespace NixieAuto1
             }
             else if (fileextension == ".ass")
             {
-                if (checkiffileexist(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".flv"))
+                if (checkiffileexist(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".mp4"))
                 {
                     return (true);
                 }
@@ -150,9 +150,15 @@ namespace NixieAuto1
         }
 
         //开始压制
+        string ALLinputvideo;
+        string ALLinputass;
+        string ALLoutputpath;
         private void startprocess(string inputfile, string inputass,string outputpath)
         {
-
+            ALLinputvideo = inputfile;
+            ALLinputass = inputass;
+            ALLoutputpath = outputpath;
+            Exe("","","");
         }
 
 
@@ -185,7 +191,7 @@ namespace NixieAuto1
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Exe("D:","ipconfig","");
+            Exe("","","");
  
         }
 
@@ -213,11 +219,51 @@ namespace NixieAuto1
         }
         private void ExeThread(object obj)
         {
+            string toolpath = "E:\\tools";
+            string temppath = System.IO.Path.GetTempPath();
+            string temppathn = System.IO.Path.GetTempFileName();
+            Random rdm = new Random();
+            string randomtmp = rdm.Next(1, 9999).ToString();
             Process cmd = obj as Process;
             cmd.Start();
-            cmd.StandardInput.WriteLine(cmd11);
-            cmd.StandardInput.WriteLine(cmd22);
-            cmd.StandardInput.WriteLine(cmd33);
+            cmd.StandardInput.WriteLine(@"E:\Tobili\To-bilibili_Enc_v0.4.cmd");
+
+
+            //cmd.StandardInput.WriteLine("CD /D \"" + toolpath + "\"");
+
+            //cmd.StandardInput.WriteLine("ffmpeg -i " + ALLinputvideo + " -f wav - | neroaacenc -q 0.7 -lc -if - -ignorelength -of " + ALLinputvideo + "_a.m4a");
+
+            //cmd.StandardInput.WriteLine("echo LoadPlugin(\"" + toolpath + "\\LSMASHSource.dll\") > \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
+
+            //cmd.StandardInput.WriteLine("echo LoadPlugin(\"" + toolpath + "\\VSFilterMod.dll\") >> \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
+
+            //cmd.StandardInput.WriteLine("echo LwlibavVideoSource(" + ALLinputvideo + ") >> \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
+
+            //cmd.StandardInput.WriteLine("echo TextsubMod(" + ALLinputass + ") >> \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
+
+            //cmd.StandardInput.WriteLine("avs4x264mod --x264-binary x264_64_tMod-8bit-all --level 4.1 --bitrate 1600 --pass 1 --stats " + ALLinputvideo + ".stats --opt 1 --ref 3 --deblock -1:-1 --vbv-bufsize 17000 --vbv-maxrate 17000 --b-pyramid none  --weightp 2 --b-adapt 2 --bframes 3 --keyint 250 --min-keyint 1 --direct auto --me esa --merange 62 -m 10 -t 2 --rc-lookahead 50 --qcomp 0.7 --aq-mode 1 --aq-strength 0.8 --psy-rd 0.4:0.1 --no-dct-decimate --fade-compensate 0.1 --stylish --output NUL \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
+
+            //cmd.StandardInput.WriteLine("avs4x264mod --x264-binary x264_64_tMod-8bit-all --level 4.1 --bitrate 1500 --pass 2 --stats " + ALLinputvideo + ".stats --opt 1 --ref 3 --deblock -1:-1 --vbv-bufsize 17000 --vbv-maxrate 17000 --b-pyramid none  --weightp 2 --b-adapt 2 --bframes 3 --keyint 250 --min-keyint 1 --direct auto --me esa --merange 62 -m 10 -t 2 --rc-lookahead 50 --qcomp 0.7 --aq-mode 1 --aq-strength 0.8 --psy-rd 0.4:0.1 --no-dct-decimate --fade-compensate 0.1 --stylish --output NUL \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
+
+            //cmd.StandardInput.WriteLine("avs4x264mod --x264-binary x264_64_tMod-8bit-all --level 4.1 --bitrate 1400 --pass 3 --stats " + ALLinputvideo + ".stats --opt 1 --ref 3 --deblock -1:-1 --vbv-bufsize 17000 --vbv-maxrate 17000 --b-pyramid none  --weightp 2 --b-adapt 2 --bframes 3 --keyint 250 --min-keyint 1 --direct auto --me esa --merange 62 -m 10 -t 2 --rc-lookahead 50 --qcomp 0.7 --aq-mode 1 --aq-strength 0.8 --psy-rd 0.4:0.1 --no-dct-decimate --fade-compensate 0.1 --stylish --output " + ALLinputvideo + "_v.mp4 \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
+
+            //cmd.StandardInput.WriteLine("remuxer -i " + ALLinputvideo + "_v.mp4 -i " + ALLinputvideo + "_a.m4a -o " + ALLinputvideo + "[NixieAuto].flv");
+
+            //cmd.StandardInput.WriteLine("del \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
+
+            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + ".lwi");
+
+            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + ".stats");
+
+            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + ".stats.mbtree");
+
+            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + "_v.mp4");
+
+            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + "_a.m4a");
+
+            //cmd.StandardInput.WriteLine("pause");
+
+
             cmd.OutputDataReceived += new DataReceivedEventHandler(cmd_OutputDataReceived);
             cmd.BeginOutputReadLine();
             //
@@ -232,10 +278,20 @@ namespace NixieAuto1
         void cmd_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             ShowMessage(e.Data);
+            Debug.WriteLine(e.Data);
+            //String rd = "";
+            //if (checkiffileexist(ALLinputvideo + ".Progress.txt"))
+            //{
+            //    rd = File.ReadAllText(ALLinputvideo + ".Progress.txt");
+            //}
+
+           
+            File.WriteAllText(ALLinputvideo + ".Progress.txt",rd+"/n"+e.Data);
         }
         private delegate void ShowMessageHandler(string msg);
         private void ShowMessage(string msg)
         {
+
             if (this.InvokeRequired)
             {
                 this.BeginInvoke(new ShowMessageHandler(ShowMessage), new object[] { msg });
