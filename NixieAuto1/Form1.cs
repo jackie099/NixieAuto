@@ -88,13 +88,14 @@ namespace NixieAuto1
                 string FileExtension = Path.GetExtension(changedfilefullpath);
                 string VideoPath;
                 string SubtitlePath;
+                string ProjectName = Path.GetFileNameWithoutExtension(changedfilefullpath);
 
                     VideoPath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".mp4";
                     SubtitlePath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".ass";
 
                 Debug.WriteLine("Video Path:"+VideoPath);
                 Debug.WriteLine("Subtitle Path:" + SubtitlePath);
-                startprocess(VideoPath,SubtitlePath,@"E:\output");
+                startprocess(VideoPath,SubtitlePath,ProjectName);
 
             }
 
@@ -150,14 +151,18 @@ namespace NixieAuto1
         }
 
         //开始压制
-        string ALLinputvideo;
-        string ALLinputass;
-        string ALLoutputpath;
-        private void startprocess(string inputfile, string inputass,string outputpath)
+        string ScriptPath;
+
+        private void startprocess(string inputfile, string inputass,string ProjectName)
         {
-            ALLinputvideo = inputfile;
-            ALLinputass = inputass;
-            ALLoutputpath = outputpath;
+            string NewScript = @"E:\tools\" + ProjectName + ".cmd";
+            File.Copy(@"E:\tools\templ.cmd", NewScript);
+            string rdScript = File.ReadAllText(NewScript);
+            rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath",inputfile);
+            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", inputfile);
+            rdScript = rdScript.Replace("ThisIsTheAwesomeProjectName", inputfile);
+            File.WriteAllText(NewScript,rdScript);
+            ScriptPath = NewScript;
             Exe("","","");
         }
 
@@ -226,7 +231,7 @@ namespace NixieAuto1
             string randomtmp = rdm.Next(1, 9999).ToString();
             Process cmd = obj as Process;
             cmd.Start();
-            cmd.StandardInput.WriteLine(@"E:\Tobili\To-bilibili_Enc_v0.4.cmd");
+            cmd.StandardInput.WriteLine(ScriptPath);
 
 
             //cmd.StandardInput.WriteLine("CD /D \"" + toolpath + "\"");
@@ -278,15 +283,15 @@ namespace NixieAuto1
         void cmd_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             ShowMessage(e.Data);
-            Debug.WriteLine(e.Data);
+            //Debug.WriteLine(e.Data);
             //String rd = "";
             //if (checkiffileexist(ALLinputvideo + ".Progress.txt"))
             //{
             //    rd = File.ReadAllText(ALLinputvideo + ".Progress.txt");
             //}
+            //File.WriteAllText(ALLinputvideo + ".Progress.txt", rd + "/n" + e.Data);
 
-           
-            File.WriteAllText(ALLinputvideo + ".Progress.txt",rd+"/n"+e.Data);
+
         }
         private delegate void ShowMessageHandler(string msg);
         private void ShowMessage(string msg)
