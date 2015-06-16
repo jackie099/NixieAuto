@@ -37,7 +37,7 @@ namespace NixieAuto1
         {
             MessageBox.Show("Watching");
             string path;
-            path = @"E:\Nixie";
+            path = @"E:\Nixie\NixieAuto";
             FileSystemWatcher watcher = new FileSystemWatcher();
             watcher.Path = path;
             watcher.NotifyFilter = NotifyFilters.FileName |
