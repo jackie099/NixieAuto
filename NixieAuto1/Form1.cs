@@ -156,11 +156,15 @@ namespace NixieAuto1
         private void startprocess(string inputfile, string inputass,string ProjectName)
         {
             string NewScript = @"E:\tools\" + ProjectName + ".cmd";
-            File.Copy(@"E:\tools\templ.cmd", NewScript);
+            if (checkiffileexist(NewScript))
+            {
+                File.Copy(@"E:\tools\templ.cmd", NewScript);
+            }
+            
             string rdScript = File.ReadAllText(NewScript);
             rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath",inputfile);
-            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", inputfile);
-            rdScript = rdScript.Replace("ThisIsTheAwesomeProjectName", inputfile);
+            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", inputass);
+            rdScript = rdScript.Replace("ThisIsTheAwesomeProjectName", ProjectName);
             File.WriteAllText(NewScript,rdScript);
             ScriptPath = NewScript;
             Exe("","","");
