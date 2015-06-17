@@ -16,6 +16,49 @@ namespace NixieAuto1
 {
     public partial class Form1 : Form
     {
+
+        public bool WaitForFile(string fullPath)
+        {
+            int numTries = 0;
+            while (true)
+            {
+                ++numTries;
+                try
+                {
+                    // Attempt to open the file exclusively.
+                    using (FileStream fs = new FileStream(fullPath,
+                        FileMode.Open, FileAccess.ReadWrite,
+                        FileShare.None, 100))
+                    {
+                        fs.ReadByte();
+
+                        // If we got this far the file is ready
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(
+                       "WaitForFile {0} failed to get an exclusive lock: {1}",
+                        fullPath, ex.ToString());
+
+                    if (numTries > 10)
+                    {
+                        Debug.WriteLine(
+                            "WaitForFile {0} giving up after 10 tries",
+                            fullPath);
+                        return false;
+                    }
+
+                    // Wait for the lock to be released
+                    System.Threading.Thread.Sleep(500);
+                }
+            }
+
+            Debug.WriteLine("WaitForFile {0} returning true after {1} tries",
+                fullPath, numTries);
+            return true;
+        }
         public Form1()
         {
             InitializeComponent();
@@ -77,11 +120,13 @@ namespace NixieAuto1
             lastpath = e.FullPath;
             string changedfilefullpath = e.FullPath;
             string changedfilename = e.Name;
+            
+            //while (IsFileLocked(fread))
+            //{
+            //    System.Threading.Thread.Sleep(1000);
+            //}
+            WaitForFile(e.FullPath);
             FileInfo fread = new FileInfo(changedfilefullpath);
-            while (IsFileLocked(fread))
-            {
-                System.Threading.Thread.Sleep(1000);
-            }
             //Debug.WriteLine("File changed detected:" + changedfilefullpath);
             if (checkiftheresbothfiles(changedfilefullpath, changedfilename, fread))
             {
@@ -110,7 +155,7 @@ namespace NixieAuto1
             //Debug.WriteLine(Path.GetDirectoryName(filepath) +@"\"+ Path.GetFileNameWithoutExtension(filepath) + ".ass");
             if (fileextension == ".mp4")
             {
-                if (checkiffileexist(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".ass"))
+                if (File.Exists(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".ass"))
                 {
                     return (true);
                 }
@@ -121,7 +166,7 @@ namespace NixieAuto1
             }
             else if (fileextension == ".ass")
             {
-                if (checkiffileexist(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".mp4"))
+                if (File.Exists(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".mp4"))
                 {
                     return (true);
                 }
@@ -137,18 +182,7 @@ namespace NixieAuto1
         }
 
 
-        //检查特定文件是否存在
-        private bool checkiffileexist(string filepath)
-        {
-            if (File.Exists(filepath))
-            {
-                return (true);
-            }
-            else
-            {
-                return (false);
-            }
-        }
+
 
         //开始压制
         string ScriptPath;
@@ -156,18 +190,24 @@ namespace NixieAuto1
         private void startprocess(string inputfile, string inputass,string ProjectName)
         {
             string NewScript = @"E:\tools\" + ProjectName + ".cmd";
-            if (checkiffileexist(NewScript))
+            if (!File.Exists(NewScript))
             {
                 File.Copy(@"E:\tools\templ.cmd", NewScript);
             }
+            else
+            {
+                File.Delete(NewScript);
+                File.Copy(@"E:\tools\templ.cmd", NewScript);
+            }
             
-            string rdScript = File.ReadAllText(NewScript);
+            string rdScript = File.ReadAllText(NewScript, Encoding.GetEncoding("gb2312"));
             rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath",inputfile);
             rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", inputass);
             rdScript = rdScript.Replace("ThisIsTheAwesomeProjectName", ProjectName);
-            File.WriteAllText(NewScript,rdScript);
+            File.WriteAllText(NewScript,rdScript, Encoding.GetEncoding("gb2312"));
             ScriptPath = NewScript;
-            Exe("","","");
+            //Exe("","","");
+            System.Diagnostics.Process.Start("\"" + ScriptPath + "\"");
         }
 
 
@@ -197,6 +237,8 @@ namespace NixieAuto1
             //file is not locked
             return false;
         }
+
+
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -235,7 +277,7 @@ namespace NixieAuto1
             string randomtmp = rdm.Next(1, 9999).ToString();
             Process cmd = obj as Process;
             cmd.Start();
-            cmd.StandardInput.WriteLine(ScriptPath);
+            cmd.StandardInput.WriteLine("\"" +ScriptPath+"\"");
 
 
             //cmd.StandardInput.WriteLine("CD /D \"" + toolpath + "\"");
@@ -274,8 +316,7 @@ namespace NixieAuto1
 
 
             cmd.OutputDataReceived += new DataReceivedEventHandler(cmd_OutputDataReceived);
-            cmd.BeginOutputReadLine();
-            //
+            cmd.BeginOutputReadLine(); 
             Application.DoEvents();
             cmd.WaitForExit();
             if (cmd.ExitCode != 0)
@@ -287,15 +328,6 @@ namespace NixieAuto1
         void cmd_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             ShowMessage(e.Data);
-            //Debug.WriteLine(e.Data);
-            //String rd = "";
-            //if (checkiffileexist(ALLinputvideo + ".Progress.txt"))
-            //{
-            //    rd = File.ReadAllText(ALLinputvideo + ".Progress.txt");
-            //}
-            //File.WriteAllText(ALLinputvideo + ".Progress.txt", rd + "/n" + e.Data);
-
-
         }
         private delegate void ShowMessageHandler(string msg);
         private void ShowMessage(string msg)
