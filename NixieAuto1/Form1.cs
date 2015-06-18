@@ -42,13 +42,13 @@ namespace NixieAuto1
                        "WaitForFile {0} failed to get an exclusive lock: {1}",
                         fullPath, ex.ToString());
 
-                    if (numTries > 10)
-                    {
-                        Debug.WriteLine(
-                            "WaitForFile {0} giving up after 10 tries",
-                            fullPath);
-                        return false;
-                    }
+                    //if (numTries > 10)
+                    //{
+                    //    Debug.WriteLine(
+                    //        "WaitForFile {0} giving up after 10 tries",
+                    //        fullPath);
+                    //    return false;
+                    //}
 
                     // Wait for the lock to be released
                     System.Threading.Thread.Sleep(500);
@@ -125,7 +125,18 @@ namespace NixieAuto1
             //{
             //    System.Threading.Thread.Sleep(1000);
             //}
-            WaitForFile(e.FullPath);
+
+
+            if (Path.GetExtension(e.FullPath) == ".mp4" || Path.GetExtension(e.FullPath) == ".ass")
+            {
+                WaitForFile(e.FullPath);
+            }
+            else
+            {
+                return;
+            }
+
+            
             FileInfo fread = new FileInfo(changedfilefullpath);
             //Debug.WriteLine("File changed detected:" + changedfilefullpath);
             if (checkiftheresbothfiles(changedfilefullpath, changedfilename, fread))
