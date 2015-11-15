@@ -70,17 +70,14 @@ namespace NixieAuto1
 
         }
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
 
-        }
 
         //监控是否有文件变动
         private void watch()
         {
             MessageBox.Show("Watching");
             string path;
-            path = @"E:\Nixie\NixieAuto";
+            path = @"C:\Users\Jackie099\ownCloud\NixieAuto";
             FileSystemWatcher watcher = new FileSystemWatcher();
             watcher.Path = path;
             watcher.NotifyFilter = NotifyFilters.FileName |
@@ -200,25 +197,27 @@ namespace NixieAuto1
 
         private void startprocess(string inputfile, string inputass,string ProjectName)
         {
-            string NewScript = @"E:\tools\" + ProjectName + ".cmd";
+            string NewScript = @"D:\Nixiesubs\Enc\" + ProjectName + ".py";
             if (!File.Exists(NewScript))
             {
-                File.Copy(@"E:\tools\templ.cmd", NewScript);
+                File.Copy(@"D:\Nixiesubs\To-bilibili_Enc\To-bilibili_Enc_mod.py", NewScript);
             }
             else
             {
                 File.Delete(NewScript);
-                File.Copy(@"E:\tools\templ.cmd", NewScript);
+                File.Copy(@"D:\Nixiesubs\To-bilibili_Enc\To-bilibili_Enc_mod.py", NewScript);
             }
             
-            string rdScript = File.ReadAllText(NewScript, Encoding.GetEncoding("gb2312"));
-            rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath",inputfile);
-            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", inputass);
-            rdScript = rdScript.Replace("ThisIsTheAwesomeProjectName", ProjectName);
-            File.WriteAllText(NewScript,rdScript, Encoding.GetEncoding("gb2312"));
+            string rdScript = File.ReadAllText(NewScript, Encoding.UTF8);
+            rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath", "\'" + inputfile+ "\'");
+            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", "\'" + inputass+ "\'");
+            //rdScript = rdScript.Replace("ThisIsTheAwesomeProjectName", ProjectName);
+            //File.WriteAllText(NewScript,rdScript, Encoding.GetEncoding("gb2312"));
+            File.WriteAllText(NewScript, rdScript, Encoding.UTF8);
             ScriptPath = NewScript;
             //Exe("","","");
-            System.Diagnostics.Process.Start("\"" + ScriptPath + "\"");
+            //System.Diagnostics.Process.Start("\"" + ScriptPath + "\""+" "+ "\"" + inputfile + "\""+" "+ "\"" + inputass + "\"");
+            System.Diagnostics.Process.Start("\"" + ScriptPath + "\"" );
         }
 
 
