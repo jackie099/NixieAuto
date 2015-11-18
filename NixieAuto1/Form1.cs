@@ -75,14 +75,22 @@ namespace NixieAuto1
         //监控是否有文件变动
         private void watch()
         {
-            MessageBox.Show("Watching");
+       //     MessageBox.Show("Watching");
+            ShowMessage("Service started!");
             string path;
             path = @"C:\Users\Jackie099\ownCloud\NixieAuto";
             FileSystemWatcher watcher = new FileSystemWatcher();
             watcher.Path = path;
-            watcher.NotifyFilter = NotifyFilters.FileName |
+            //  watcher.NotifyFilter = NotifyFilters.FileName |
+            //                         NotifyFilters.LastWrite |
+            //                         NotifyFilters.CreationTime;
+            watcher.NotifyFilter = NotifyFilters.Attributes |
+                                   NotifyFilters.CreationTime |
+                                   NotifyFilters.FileName |
+                                   NotifyFilters.LastAccess |
                                    NotifyFilters.LastWrite |
-                                   NotifyFilters.CreationTime;
+                                   NotifyFilters.Size |
+                                   NotifyFilters.Security;
             watcher.Filter = "*.*";
             watcher.Changed += new FileSystemEventHandler(OnChanged);
             watcher.Created += new FileSystemEventHandler(OnChanged);
@@ -115,6 +123,7 @@ namespace NixieAuto1
                 return;
             }
             lastpath = e.FullPath;
+
             string changedfilefullpath = e.FullPath;
             string changedfilename = e.Name;
             
@@ -135,7 +144,8 @@ namespace NixieAuto1
 
             
             FileInfo fread = new FileInfo(changedfilefullpath);
-            //Debug.WriteLine("File changed detected:" + changedfilefullpath);
+            Debug.WriteLine("File changed detected:" + changedfilefullpath);
+            ShowMessage("File name received:"+changedfilefullpath);
             if (checkiftheresbothfiles(changedfilefullpath, changedfilename, fread))
             {
                 string FileExtension = Path.GetExtension(changedfilefullpath);
@@ -148,6 +158,8 @@ namespace NixieAuto1
 
                 Debug.WriteLine("Video Path:"+VideoPath);
                 Debug.WriteLine("Subtitle Path:" + SubtitlePath);
+                ShowMessage("Video path:"+VideoPath);
+                ShowMessage("Subtitle path:" + SubtitlePath);
                 startprocess(VideoPath,SubtitlePath,ProjectName);
 
             }
@@ -158,9 +170,9 @@ namespace NixieAuto1
         // 检测带有flv或者ass的文件是否同时存在
         private bool checkiftheresbothfiles(string filepath, string filename, FileInfo fread)
         {
-            //Debug.WriteLine(filepath + "|" + filename);
+            Debug.WriteLine(filepath + "|" + filename);
             string fileextension = Path.GetExtension(filepath);
-            //Debug.WriteLine(Path.GetDirectoryName(filepath) +@"\"+ Path.GetFileNameWithoutExtension(filepath) + ".ass");
+            Debug.WriteLine(Path.GetDirectoryName(filepath) +@"\"+ Path.GetFileNameWithoutExtension(filepath) + ".ass");
             if (fileextension == ".mp4")
             {
                 if (File.Exists(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".ass"))
@@ -209,8 +221,8 @@ namespace NixieAuto1
             }
             
             string rdScript = File.ReadAllText(NewScript, Encoding.UTF8);
-            rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath", "\'" + inputfile+ "\'");
-            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", "\'" + inputass+ "\'");
+            rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath", "\'" + inputfile.Replace("\"","\\\"").Replace("\'","\\\'")+ "\'");
+            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", "\'" + inputass.Replace("\"", "\\\"").Replace("\'", "\\\'") + "\'");
             //rdScript = rdScript.Replace("ThisIsTheAwesomeProjectName", ProjectName);
             //File.WriteAllText(NewScript,rdScript, Encoding.GetEncoding("gb2312"));
             File.WriteAllText(NewScript, rdScript, Encoding.UTF8);
@@ -218,6 +230,7 @@ namespace NixieAuto1
             //Exe("","","");
             //System.Diagnostics.Process.Start("\"" + ScriptPath + "\""+" "+ "\"" + inputfile + "\""+" "+ "\"" + inputass + "\"");
             System.Diagnostics.Process.Start("\"" + ScriptPath + "\"" );
+            ShowMessage("Enc started, script path:"+ScriptPath);
         }
 
 
@@ -236,6 +249,7 @@ namespace NixieAuto1
                 //still being written to
                 //or being processed by another thread
                 //or does not exist (has already been processed)
+                ShowMessage("File locked, waiting");
                 return true;
             }
             finally
@@ -351,11 +365,14 @@ namespace NixieAuto1
             {
                 if (msg != null)
                 {
-                    textBox1.AppendText(msg + "\r\n");
+                    textBox1.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")+" - " + msg + "\r\n");
                 }
             }
         }
 
-
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            watch();
+        }
     }
 }
