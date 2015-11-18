@@ -25,14 +25,12 @@ namespace NixieAuto1
                 ++numTries;
                 try
                 {
-                    // Attempt to open the file exclusively.
                     using (FileStream fs = new FileStream(fullPath,
                         FileMode.Open, FileAccess.ReadWrite,
                         FileShare.None, 100))
                     {
                         fs.ReadByte();
 
-                        // If we got this far the file is ready
                         break;
                     }
                 }
@@ -50,7 +48,6 @@ namespace NixieAuto1
                     //    return false;
                     //}
 
-                    // Wait for the lock to be released
                     System.Threading.Thread.Sleep(500);
                 }
             }
@@ -228,7 +225,11 @@ namespace NixieAuto1
             File.WriteAllText(NewScript, rdScript, Encoding.UTF8);
             ScriptPath = NewScript;
             //Exe("","","");
+
+
             //System.Diagnostics.Process.Start("\"" + ScriptPath + "\""+" "+ "\"" + inputfile + "\""+" "+ "\"" + inputass + "\"");
+
+
             System.Diagnostics.Process.Start("\"" + ScriptPath + "\"" );
             ShowMessage("Enc started, script path:"+ScriptPath);
         }
@@ -245,10 +246,7 @@ namespace NixieAuto1
             }
             catch (IOException)
             {
-                //the file is unavailable because it is:
-                //still being written to
-                //or being processed by another thread
-                //or does not exist (has already been processed)
+
                 ShowMessage("File locked, waiting");
                 return true;
             }
@@ -282,7 +280,6 @@ namespace NixieAuto1
             Process cmd = new Process();
             cmd.StartInfo.FileName = "cmd.exe";
             //cmd.StartInfo.Arguments = args;
-            //将cmd的标准输入和输出全部重定向到.NET的程序里 
             cmd.StartInfo.RedirectStandardInput = true; 
             cmd.StartInfo.RedirectStandardOutput = true;
             cmd.StartInfo.UseShellExecute = false;
@@ -302,43 +299,6 @@ namespace NixieAuto1
             Process cmd = obj as Process;
             cmd.Start();
             cmd.StandardInput.WriteLine("\"" +ScriptPath+"\"");
-
-
-            //cmd.StandardInput.WriteLine("CD /D \"" + toolpath + "\"");
-
-            //cmd.StandardInput.WriteLine("ffmpeg -i " + ALLinputvideo + " -f wav - | neroaacenc -q 0.7 -lc -if - -ignorelength -of " + ALLinputvideo + "_a.m4a");
-
-            //cmd.StandardInput.WriteLine("echo LoadPlugin(\"" + toolpath + "\\LSMASHSource.dll\") > \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
-
-            //cmd.StandardInput.WriteLine("echo LoadPlugin(\"" + toolpath + "\\VSFilterMod.dll\") >> \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
-
-            //cmd.StandardInput.WriteLine("echo LwlibavVideoSource(" + ALLinputvideo + ") >> \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
-
-            //cmd.StandardInput.WriteLine("echo TextsubMod(" + ALLinputass + ") >> \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
-
-            //cmd.StandardInput.WriteLine("avs4x264mod --x264-binary x264_64_tMod-8bit-all --level 4.1 --bitrate 1600 --pass 1 --stats " + ALLinputvideo + ".stats --opt 1 --ref 3 --deblock -1:-1 --vbv-bufsize 17000 --vbv-maxrate 17000 --b-pyramid none  --weightp 2 --b-adapt 2 --bframes 3 --keyint 250 --min-keyint 1 --direct auto --me esa --merange 62 -m 10 -t 2 --rc-lookahead 50 --qcomp 0.7 --aq-mode 1 --aq-strength 0.8 --psy-rd 0.4:0.1 --no-dct-decimate --fade-compensate 0.1 --stylish --output NUL \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
-
-            //cmd.StandardInput.WriteLine("avs4x264mod --x264-binary x264_64_tMod-8bit-all --level 4.1 --bitrate 1500 --pass 2 --stats " + ALLinputvideo + ".stats --opt 1 --ref 3 --deblock -1:-1 --vbv-bufsize 17000 --vbv-maxrate 17000 --b-pyramid none  --weightp 2 --b-adapt 2 --bframes 3 --keyint 250 --min-keyint 1 --direct auto --me esa --merange 62 -m 10 -t 2 --rc-lookahead 50 --qcomp 0.7 --aq-mode 1 --aq-strength 0.8 --psy-rd 0.4:0.1 --no-dct-decimate --fade-compensate 0.1 --stylish --output NUL \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
-
-            //cmd.StandardInput.WriteLine("avs4x264mod --x264-binary x264_64_tMod-8bit-all --level 4.1 --bitrate 1400 --pass 3 --stats " + ALLinputvideo + ".stats --opt 1 --ref 3 --deblock -1:-1 --vbv-bufsize 17000 --vbv-maxrate 17000 --b-pyramid none  --weightp 2 --b-adapt 2 --bframes 3 --keyint 250 --min-keyint 1 --direct auto --me esa --merange 62 -m 10 -t 2 --rc-lookahead 50 --qcomp 0.7 --aq-mode 1 --aq-strength 0.8 --psy-rd 0.4:0.1 --no-dct-decimate --fade-compensate 0.1 --stylish --output " + ALLinputvideo + "_v.mp4 \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
-
-            //cmd.StandardInput.WriteLine("remuxer -i " + ALLinputvideo + "_v.mp4 -i " + ALLinputvideo + "_a.m4a -o " + ALLinputvideo + "[NixieAuto].flv");
-
-            //cmd.StandardInput.WriteLine("del \"" + temppath + "tmpavs" + randomtmp + ".avs\"");
-
-            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + ".lwi");
-
-            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + ".stats");
-
-            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + ".stats.mbtree");
-
-            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + "_v.mp4");
-
-            //cmd.StandardInput.WriteLine("del " + ALLinputvideo + "_a.m4a");
-
-            //cmd.StandardInput.WriteLine("pause");
-
-
             cmd.OutputDataReceived += new DataReceivedEventHandler(cmd_OutputDataReceived);
             cmd.BeginOutputReadLine(); 
             Application.DoEvents();
