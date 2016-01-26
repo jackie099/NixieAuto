@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using MySql.Data.MySqlClient;
 using System.Windows.Forms;
 
 namespace NixieAuto1
@@ -68,14 +69,14 @@ namespace NixieAuto1
         }
 
 
-
         //监控是否有文件变动
         private void watch()
         {
-       //     MessageBox.Show("Watching");
-            ShowMessage("Service started!");
+            //     MessageBox.Show("Watching");
+            ShowMessage("NixieAuto service started!");
             string path;
-            path = @"C:\Users\Jackie099\ownCloud\NixieAuto";
+            //path = @"C:\Users\Jackie099\ownCloud\NixieAuto";
+            path = @"C:\Users\Administrator\ownCloud\NixieAuto";
             FileSystemWatcher watcher = new FileSystemWatcher();
             watcher.Path = path;
             //  watcher.NotifyFilter = NotifyFilters.FileName |
@@ -123,7 +124,7 @@ namespace NixieAuto1
 
             string changedfilefullpath = e.FullPath;
             string changedfilename = e.Name;
-            
+
             //while (IsFileLocked(fread))
             //{
             //    System.Threading.Thread.Sleep(1000);
@@ -139,10 +140,10 @@ namespace NixieAuto1
                 return;
             }
 
-            
+
             FileInfo fread = new FileInfo(changedfilefullpath);
             Debug.WriteLine("File changed detected:" + changedfilefullpath);
-            ShowMessage("File name received:"+changedfilefullpath);
+            ShowMessage("File name received:" + changedfilefullpath);
             if (checkiftheresbothfiles(changedfilefullpath, changedfilename, fread))
             {
                 string FileExtension = Path.GetExtension(changedfilefullpath);
@@ -150,15 +151,24 @@ namespace NixieAuto1
                 string SubtitlePath;
                 string ProjectName = Path.GetFileNameWithoutExtension(changedfilefullpath);
 
-                    VideoPath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".mp4";
-                    SubtitlePath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".ass";
+                VideoPath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".mp4";
+                SubtitlePath = Path.GetDirectoryName(changedfilefullpath) + @"\" + Path.GetFileNameWithoutExtension(changedfilefullpath) + ".ass";
 
-                Debug.WriteLine("Video Path:"+VideoPath);
+                Debug.WriteLine("Video Path:" + VideoPath);
                 Debug.WriteLine("Subtitle Path:" + SubtitlePath);
-                ShowMessage("Video path:"+VideoPath);
+                ShowMessage("Video path:" + VideoPath);
                 ShowMessage("Subtitle path:" + SubtitlePath);
-                startprocess(VideoPath,SubtitlePath,ProjectName);
+                startprocess(VideoPath, SubtitlePath, ProjectName);
 
+            }
+            else
+            {
+                String FileName = Path.GetFileName(changedfilefullpath);
+                String FileNameWithoutEx = Path.GetFileNameWithoutExtension(changedfilefullpath);
+                if (GetLast(FileNameWithoutEx,8) == "[upload]")
+                {
+                    Update(GetFirst(FileNameWithoutEx), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                }
             }
 
 
@@ -169,7 +179,7 @@ namespace NixieAuto1
         {
             Debug.WriteLine(filepath + "|" + filename);
             string fileextension = Path.GetExtension(filepath);
-            Debug.WriteLine(Path.GetDirectoryName(filepath) +@"\"+ Path.GetFileNameWithoutExtension(filepath) + ".ass");
+            Debug.WriteLine(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".ass");
             if (fileextension == ".mp4")
             {
                 if (File.Exists(Path.GetDirectoryName(filepath) + @"\" + Path.GetFileNameWithoutExtension(filepath) + ".ass"))
@@ -204,7 +214,7 @@ namespace NixieAuto1
         //开始压制
         string ScriptPath;
 
-        private void startprocess(string inputfile, string inputass,string ProjectName)
+        private void startprocess(string inputfile, string inputass, string ProjectName)
         {
             string NewScript = @"D:\Nixiesubs\Enc\" + ProjectName + ".py";
             if (!File.Exists(NewScript))
@@ -216,10 +226,10 @@ namespace NixieAuto1
                 File.Delete(NewScript);
                 File.Copy(@"D:\Nixiesubs\To-bilibili_Enc\To-bilibili_Enc_mod.py", NewScript);
             }
-            
+
             string rdScript = File.ReadAllText(NewScript, Encoding.UTF8);
-            rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath", "\'" + inputfile.Replace("\"","\\\"").Replace("\'","\\\'")+ "\'");
-            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", "\'" + inputass.Replace("\"", "\\\"").Replace("\'", "\\\'") + "\'");
+            rdScript = rdScript.Replace("ThisIsTheAwesomeVideoPath", "\'" + inputfile.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\'", "\\\'") + "\'");
+            rdScript = rdScript.Replace("ThisIsTheAwesomeSubPath", "\'" + inputass.Replace("\\", "\\\\").Replace("\"", "\\\"").Replace("\'", "\\\'") + "\'");
             //rdScript = rdScript.Replace("ThisIsTheAwesomeProjectName", ProjectName);
             //File.WriteAllText(NewScript,rdScript, Encoding.GetEncoding("gb2312"));
             File.WriteAllText(NewScript, rdScript, Encoding.UTF8);
@@ -230,8 +240,9 @@ namespace NixieAuto1
             //System.Diagnostics.Process.Start("\"" + ScriptPath + "\""+" "+ "\"" + inputfile + "\""+" "+ "\"" + inputass + "\"");
 
 
-            System.Diagnostics.Process.Start("\"" + ScriptPath + "\"" );
-            ShowMessage("Enc started, script path:"+ScriptPath);
+            System.Diagnostics.Process.Start("\"" + ScriptPath + "\"");
+            Insert(ProjectName, Path.GetFileName(inputfile), DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), "Working on", ScriptPath.Replace("\\", "\\\\"));
+            ShowMessage("Enc started, script path:" + ScriptPath);
         }
 
 
@@ -264,8 +275,8 @@ namespace NixieAuto1
 
         private void button2_Click(object sender, EventArgs e)
         {
-            Exe("","","");
- 
+            Exe("", "", "");
+
         }
 
 
@@ -280,7 +291,7 @@ namespace NixieAuto1
             Process cmd = new Process();
             cmd.StartInfo.FileName = "cmd.exe";
             //cmd.StartInfo.Arguments = args;
-            cmd.StartInfo.RedirectStandardInput = true; 
+            cmd.StartInfo.RedirectStandardInput = true;
             cmd.StartInfo.RedirectStandardOutput = true;
             cmd.StartInfo.UseShellExecute = false;
             //
@@ -298,9 +309,9 @@ namespace NixieAuto1
             string randomtmp = rdm.Next(1, 9999).ToString();
             Process cmd = obj as Process;
             cmd.Start();
-            cmd.StandardInput.WriteLine("\"" +ScriptPath+"\"");
+            cmd.StandardInput.WriteLine("\"" + ScriptPath + "\"");
             cmd.OutputDataReceived += new DataReceivedEventHandler(cmd_OutputDataReceived);
-            cmd.BeginOutputReadLine(); 
+            cmd.BeginOutputReadLine();
             Application.DoEvents();
             cmd.WaitForExit();
             if (cmd.ExitCode != 0)
@@ -325,7 +336,8 @@ namespace NixieAuto1
             {
                 if (msg != null)
                 {
-                    textBox1.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")+" - " + msg + "\r\n");
+                    textBox1.AppendText(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + msg + "\r\n");
+                    File.AppendAllText(@"C:\inetpub\wwwroot\NixieAuto\log.txt", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " - " + msg + "\r\n");
                 }
             }
         }
@@ -334,5 +346,142 @@ namespace NixieAuto1
         {
             watch();
         }
+
+        //拦截关闭
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            ShowMessage("NixieAuto is closed");
+        }
+
+        //Mysql部分
+        private MySqlConnection connection;
+        private string server;
+        private string database;
+        private string uid;
+        private string password;
+
+
+        public void DBConnect()
+        {
+            Initialize();
+        }
+
+        //Initialize values
+        private void Initialize()
+        {
+
+            string connectionString;
+            connectionString = "SERVER=" + server + ";" + "DATABASE=" +
+            database + ";" + "UID=" + uid + ";" + "PASSWORD=" + password + ";";
+
+            connection = new MySqlConnection(connectionString);
+        }
+        private bool OpenConnection()
+        {
+            try
+            {
+                DBConnect();
+                connection.Open();
+                return true;
+            }
+            catch (MySqlException ex)
+            {
+                switch (ex.Number)
+                {
+                    case 0:
+                        ShowMessage("DB error: Cannot connect to server");
+                        break;
+
+                    case 1045:
+                        ShowMessage("DB error: Invalid username/password");
+                        break;
+                }
+                return false;
+            }
+        }
+
+        //关闭连接
+        private bool CloseConnection()
+        {
+            try
+            {
+                connection.Close();
+                return true;
+            }
+            catch (MySqlException ex)
+            {
+                ShowMessage("DB error:" + ex.Message);
+                return false;
+            }
+        }
+
+        //加入任务
+        public void Insert(string TaskName, string FileName, string StartTime, string EndTime, string ScriptName)
+        {
+            string query = "INSERT INTO NixieAuto (TaskName, FileName, StartTime,EndTime, ScriptName) VALUES('" + TaskName + "', '" + FileName + "','" + StartTime + "','" + EndTime + "','" + ScriptName + "')";
+
+            if (this.OpenConnection() == true)
+            {
+
+                try
+                {
+                    MySqlCommand cmd = new MySqlCommand(query, connection);
+                    cmd.ExecuteNonQuery();
+                }
+                catch (MySqlException ex)
+                {
+                    ShowMessage("DB error:" + ex.Message);
+                }
+
+                this.CloseConnection();
+            }
+        }
+
+        //更新任务
+        public void Update(string TaskName, string EndTime)
+        {
+            string query = "UPDATE NixieAuto SET EndTime='" + EndTime + "' WHERE TaskName='" + TaskName + "'";
+
+            if (this.OpenConnection() == true)
+            {
+                try
+                {
+                    MySqlCommand cmd = new MySqlCommand();
+                    cmd.CommandText = query;
+                    cmd.Connection = connection;
+                    cmd.ExecuteNonQuery();
+                }
+                catch (MySqlException ex)
+                {
+                    ShowMessage("DB error:" + ex.Message);
+                }
+
+                this.CloseConnection();
+            }
+        }
+        public string GetLast(string source, int tail_length)
+        {
+            if (tail_length >= source.Length)
+            {
+                return source;
+            }
+                
+            else
+            {
+                return source.Substring(source.Length - tail_length);
+            }
+        }
+        public string GetFirst(string source)
+        {
+            if(source.Length <= 8)
+            {
+                return source;
+            }
+            else
+            {
+                return source.Substring(0, source.Length - 8);
+            }
+        }
+
     }
 }
